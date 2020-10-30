@@ -2,7 +2,6 @@ from collections import OrderedDict
 
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
-from rest_framework.utils.urls import remove_query_param, replace_query_param
 
 
 class BasePagination(PageNumberPagination):
