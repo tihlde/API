@@ -5,7 +5,7 @@ from rest_framework.response import Response
 
 
 class BasePagination(PageNumberPagination):
-    page_size = 25
+    page_size = 1
     page_size_query_param = "None"
 
     def get_paginated_response(self, data):
@@ -14,7 +14,7 @@ class BasePagination(PageNumberPagination):
                 [
                     ("count", self.page.paginator.count),
                     ("next", self.get_next_page()),
-                    ("previous", self.get_previou_page()),
+                    ("previous", self.get_previous_page()),
                     ("results", data),
                 ]
             )
@@ -25,7 +25,7 @@ class BasePagination(PageNumberPagination):
             return None
         return self.page.next_page_number()
 
-    def get_previou_page(self):
-        if not self.page.has_previous() or self.page.previous_page_number() < 1:
+    def get_previous_page(self):
+        if not self.page.has_previous():
             return None
         return self.page.previous_page_number()
