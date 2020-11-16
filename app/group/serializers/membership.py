@@ -6,8 +6,8 @@ from app.group.serializers.group import DefaultGroupSerializer
 
 
 class MembershipSerializer(serializers.ModelSerializer):
-    user = DefaultUserSerializer()
-    group = DefaultGroupSerializer()
+    user = DefaultUserSerializer(read_only=True)
+    group = DefaultGroupSerializer(read_only=True)
 
     class Meta:
         model = Membership
@@ -18,6 +18,10 @@ class MembershipSerializer(serializers.ModelSerializer):
             "created_at",
             "expiration_date",
         )
+        read_only_fields =(
+            "user",
+            "group",
+        )
 
 
 class UpdateMembershipSerializer(MembershipSerializer):
@@ -27,8 +31,8 @@ class UpdateMembershipSerializer(MembershipSerializer):
 
 
 class MembershipHistorySerializer(serializers.ModelSerializer):
-    user = DefaultUserSerializer()
-    group = DefaultGroupSerializer()
+    user = DefaultUserSerializer(read_only=True)
+    group = DefaultGroupSerializer(read_only=True)
 
     class Meta:
         model = MembershipHistory
