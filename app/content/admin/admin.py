@@ -12,6 +12,7 @@ admin.site.register(models.Notification)
 admin.site.register(models.Cheatsheet)
 admin.site.register(models.Badge)
 admin.site.register(models.UserBadge)
+admin.site.register(models.WikiPost)
 
 
 def admin_delete_registration(modeladmin, request, queryset):
@@ -26,7 +27,6 @@ class RegistrationAdmin(admin.ModelAdmin):
     actions = [
         admin_delete_registration,
     ]
-
 
 @admin.register(models.User)
 class UserAdmin(admin.ModelAdmin):

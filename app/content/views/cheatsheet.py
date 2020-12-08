@@ -1,6 +1,7 @@
 from django.utils.translation import gettext as _
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, status, viewsets
+from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from sentry_sdk import capture_exception
@@ -71,7 +72,7 @@ class CheatsheetViewSet(viewsets.ModelViewSet):
             {"detail": _("Du har ikke tillatelse til å lage en oppskrift")},
             status=status.HTTP_403_FORBIDDEN,
         )
-
+    
     def update(self, request, *args, **kwargs):
         """Updates a cheatsheet retrieved by UserClass and UserStudy and pk"""
         try:

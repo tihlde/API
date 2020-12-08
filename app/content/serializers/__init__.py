@@ -20,4 +20,4 @@ from .user import (
 from .user_badge import UserBadgeSerializer
 from .warning import WarningSerializer
 from .news import NewsSerializer
-from .wiki import WikiListSerializer, WikiPostSerializer
+from .wiki import WikiPostSerializer, WikiFolderSerializer
