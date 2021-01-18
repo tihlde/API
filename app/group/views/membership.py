@@ -16,7 +16,7 @@ class MembershipViewSet(viewsets.ModelViewSet):
         def retrieve(self, request, slug, pk):
             """Returns a spesific membership by slug"""
             try:
-                membership = Membership.objects.get(pk=pk, group__slug=slug)
+                membership = Membership.objects.get(user__user_id=pk, group__slug=slug)
                 serializer = MembershipSerializer(
                     membership, context={"request": request}, many=False
                 )
@@ -30,7 +30,7 @@ class MembershipViewSet(viewsets.ModelViewSet):
         def update(self, request, *args, **kwargs):
             """Updates a spesific group by slug"""
             try:
-                membership = Membership.objects.get(pk=kwargs["pk"], group__slug=kwargs["slug"])
+                membership = Membership.objects.get(user__user_id=kwargs["pk"], group__slug=kwargs["slug"])
                 serializer = MembershipSerializer(membership, data=request.data, partial=True)
                 if serializer.is_valid():
                     serializer.save()

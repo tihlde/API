@@ -17,8 +17,8 @@ class MembershipHistory(BaseModel):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     group = models.ForeignKey(Group, on_delete=models.CASCADE)
     membership_type = EnumChoiceField(MembershipType, default=MembershipType.MEMBER)
-    start_date = models.DateField()
-    end_date = models.DateField()
+    start_date = models.DateTimeField()
+    end_date = models.DateTimeField()
 
     class Meta:
         unique_together = ("user", "group", "end_date")
@@ -29,13 +29,13 @@ class MembershipHistory(BaseModel):
         return f"{self.user} - {self.group} - {self.membership_type} - {self.end_date}"
 
     @staticmethod
-    def from_membership(Membership):
+    def from_membership(membership):
         """Creates a Membership History object from a Membership object"""
         MembershipHistory.objects.create(
-            user=Membership.user,
-            group=Membership.group,
-            membership_type=Membership.membership_type,
-            start_date=Membership.created_at,
+            user=membership.user,
+            group=membership.group,
+            membership_type=membership.membership_type,
+            start_date=membership.created_at,
             end_date=today(),
         )
 
@@ -53,18 +53,38 @@ class Membership(BaseModel):
 
     def __str__(self):
         return f"{self.user} - {self.group} - {self.membership_type}"
+    
+    def clean(self):
+        if self.membership_type is MembershipType.LEADER:
+            self.swap_board()
+            
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        return super(Membership, self).save(*args, **kwargs)
 
     @atomic
-    def swap_board(self, new_membership_type):
-        """Swaps leader of a group and creates a Membership History for each membership"""
-        previous_leader = Membership.objects.select_for_update().get(
-            group=self.group, membership_type=new_membership_type
-        )
-        if previous_leader.user == self.user:
-            raise ValidationError("The user is the current leader")
-        MembershipHistory.from_membership(Membership=previous_leader)
-        previous_leader.membership_type = MembershipType.MEMBER
-        previous_leader.save()
-        MembershipHistory.from_membership(Membership=self)
-        self.membership_type = new_membership_type
-        self.save()
+    def swap_board(self):
+        try:
+            try:
+                previous_leader = Membership.objects.select_for_update().get(
+                    group=self.group, membership_type=self.membership_type
+                )
+                if previous_leader.user == self.user:
+                    raise ValidationError("The user is the current leader")
+                MembershipHistory.from_membership(membership=previous_leader)
+                previous_leader.membership_type = MembershipType.MEMBER
+                previous_leader.save()
+            except Membership.DoesNotExist:
+                pass
+
+            try:
+                current_membership = Membership.objects.select_for_update().get(
+                    group=self.group, user=self.user
+                )
+                MembershipHistory.from_membership(membership=current_membership)
+            except Membership.DoesNotExist:
+                pass
+        except ValidationError:
+            pass
+        
