@@ -105,9 +105,9 @@ def test_update_as_group_user(
 
 
 @pytest.mark.django_db
-def test_create_member_membership(user, membership):
+def test_create_member_membership(admin_user, membership):
 
-    client = get_api_client(user=user, group_name=AdminGroup.HS)
+    client = get_api_client(user=admin_user)
     url = _get_membership_url(membership)
     data = _get_membership_data(membership)
     response = client.post(url, data=data, format="json")
@@ -118,13 +118,23 @@ def test_create_member_membership(user, membership):
 
 
 @pytest.mark.django_db
-def test_create_leader_membership(user, membership_leader):
+def test_create_leader_membership(admin_user, membership_leader):
 
-    client = get_api_client(user=user, group_name=AdminGroup.HS)
+    client = get_api_client(user=admin_user)
     url = _get_membership_url(membership_leader)
     data = _get_membership_data(membership_leader, leader=True)
     response = client.post(url, data=data, format="json")
     membership_leader.refresh_from_db()
 
     assert membership_leader.membership_type == MembershipType.LEADER
+    assert response.status_code == status.HTTP_200_OK
+
+
+@pytest.mark.django_db
+def test_delete_membership(admin_user, membership):
+    client = get_api_client(user=admin_user)
+
+    url = _get_membership_url_detail(membership)
+    response = client.delete(url)
+
     assert response.status_code == status.HTTP_200_OK
