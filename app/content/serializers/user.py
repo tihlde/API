@@ -9,9 +9,7 @@ from .event import EventInUserSerializer
 class DefaultUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = (
-            "user_id",
-        )
+        fields = ("user_id",)
         read_only_fields = (
             "user_id",
             "first_name",

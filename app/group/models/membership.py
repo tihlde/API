@@ -42,6 +42,7 @@ class MembershipHistory(BaseModel):
 
 class Membership(BaseModel):
     """Model for a Group Membership"""
+
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     group = models.ForeignKey(Group, on_delete=models.CASCADE)
     membership_type = EnumChoiceField(MembershipType, default=MembershipType.MEMBER)
@@ -52,11 +53,10 @@ class Membership(BaseModel):
 
     def __str__(self):
         return f"{self.user} - {self.group} - {self.membership_type}"
-    
+
     def clean(self):
         if self.membership_type is MembershipType.LEADER:
             self.swap_board()
-            
 
     def save(self, *args, **kwargs):
         self.full_clean()
@@ -86,4 +86,3 @@ class Membership(BaseModel):
                 pass
         except ValidationError:
             pass
-        

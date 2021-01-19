@@ -1,11 +1,8 @@
-from django.core.exceptions import ValidationError
-
 import pytest
 
 from app.common.enums import MembershipType
 from app.group.factories import MembershipFactory
 from app.group.factories.group_factory import GroupFactory
-from app.group.models import Membership
 
 
 @pytest.fixture()
@@ -40,6 +37,7 @@ def test_swap_leader_changes_leader(group):
     assert membership.membership_type == MembershipType.LEADER
     assert membership_leader.membership_type == MembershipType.MEMBER
 
+
 @pytest.mark.django_db
 def test_swap_leader_if_no_leader(group):
     """
@@ -51,6 +49,7 @@ def test_swap_leader_if_no_leader(group):
     membership.save()
     membership.refresh_from_db()
     assert membership.membership_type == MembershipType.LEADER
+
 
 @pytest.mark.django_db
 def test_create_leader(group):
@@ -77,4 +76,3 @@ def test_swap_leader_create_two_leaders(group):
     membership_leader.refresh_from_db()
     assert membership.membership_type == MembershipType.MEMBER
     assert membership_leader.membership_type == MembershipType.LEADER
-

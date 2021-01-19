@@ -18,7 +18,7 @@ class MembershipSerializer(serializers.ModelSerializer):
             "created_at",
             "expiration_date",
         )
-        read_only_fields =(
+        read_only_fields = (
             "user",
             "group",
         )
