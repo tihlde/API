@@ -42,7 +42,6 @@ class MembershipHistory(BaseModel):
 
 class Membership(BaseModel):
     """Model for a Group Membership"""
-
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     group = models.ForeignKey(Group, on_delete=models.CASCADE)
     membership_type = EnumChoiceField(MembershipType, default=MembershipType.MEMBER)

@@ -1,9 +1,11 @@
+from app.group.models.membership import MembershipHistory
 from rest_framework import status, viewsets
 from rest_framework.response import Response
 
 from app.group.models import Membership, Group
 from app.content.models import User
 from app.group.serializers import MembershipSerializer
+from app.common.permissions import is_admin_user
 
 
 class MembershipViewSet(viewsets.ModelViewSet):
@@ -60,3 +62,17 @@ class MembershipViewSet(viewsets.ModelViewSet):
                     {"detail": ("Medlemskapet eksisterer ikke")},
                     status=status.HTTP_404_NOT_FOUND,
                 )
+        def destroy(self, request, slug, pk):
+            membership = Membership.objects.get(user__user_id=pk, group__slug=slug)
+            print(membership)
+            if is_admin_user(request):
+                MembershipHistory.from_membership(membership)
+                self.perform_destroy(membership)
+                return Response(
+                    {"detail": ("Medlemskap har blitt slettet")},
+                    status=status.HTTP_200_OK,
+                )
+            return Response(
+                {"detail": ("Ikke riktig tilatelse for å slette et medlemskap")},
+                status=status.HTTP_403_FORBIDDEN,
+            )
