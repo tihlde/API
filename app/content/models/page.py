@@ -12,7 +12,7 @@ class Page(MPTTModel, OptionalImage, BaseModel):
     Page_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     title = models.CharField(max_length=150, unique=False)
     slug = models.SlugField(max_length=50, unique=False, null=True) 
-    content = models.TextField(null=True, blank=True)
+    content = models.TextField(blank=True)
 
     class Meta:
         unique_together = ("parent", "slug")
