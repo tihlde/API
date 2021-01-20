@@ -128,13 +128,3 @@ def test_create_leader_membership(admin_user, membership_leader):
 
     assert membership_leader.membership_type == MembershipType.LEADER
     assert response.status_code == status.HTTP_200_OK
-
-
-@pytest.mark.django_db
-def test_delete_membership(admin_user, membership):
-    client = get_api_client(user=admin_user)
-
-    url = _get_membership_url_detail(membership)
-    response = client.delete(url)
-
-    assert response.status_code == status.HTTP_200_OK

@@ -62,6 +62,10 @@ class Membership(BaseModel):
         self.full_clean()
         return super(Membership, self).save(*args, **kwargs)
 
+    def delete(self, *args, **kwargs):
+        MembershipHistory.from_membership(self)
+        return super(Membership, self).delete(*args, **kwargs)
+
     @atomic
     def swap_board(self):
         try:

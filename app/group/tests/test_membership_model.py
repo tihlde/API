@@ -3,6 +3,7 @@ import pytest
 from app.common.enums import MembershipType
 from app.group.factories import MembershipFactory
 from app.group.factories.group_factory import GroupFactory
+from app.group.models.membership import MembershipHistory
 
 
 @pytest.fixture()
@@ -54,8 +55,7 @@ def test_swap_leader_if_no_leader(group):
 @pytest.mark.django_db
 def test_create_leader(group):
     """
-    Tests that swap leader changes the leader of the group,
-    when there is a leader and a member
+    Tests that creates a leader to a group
     """
     membership = MembershipFactory(membership_type=MembershipType.LEADER, group=group)
     membership.refresh_from_db()
@@ -63,7 +63,7 @@ def test_create_leader(group):
 
 
 @pytest.mark.django_db
-def test_swap_leader_create_two_leaders(group):
+def test_swap_leader_dose_not_create_two_leaders(group):
     """
     Tests that swap leader changes the leader of the group,
     when there is a leader and a member
@@ -76,3 +76,9 @@ def test_swap_leader_create_two_leaders(group):
     membership_leader.refresh_from_db()
     assert membership.membership_type == MembershipType.MEMBER
     assert membership_leader.membership_type == MembershipType.LEADER
+
+
+@pytest.mark.django_db
+def test_on_delete_membership_history_is_created(membership):
+    membership.delete()
+    assert MembershipHistory.objects.get(start_date=membership.created_at)
