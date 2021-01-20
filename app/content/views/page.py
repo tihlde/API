@@ -16,12 +16,12 @@ class PageViewSet(viewsets.ModelViewSet):
     lookup_url_kwarg = "path"
     lookup_value_regex = "[\w\d_/-]+"
 
-    def get_wiki_from_tree(self):
+    def get_page_from_tree(self):
         return Page.get_by_path(self.kwargs['path'])
 
     def retrieve(self, request, *args, **kwargs):
         try:
-            post = self.get_wiki_from_tree()
+            post = self.get_page_from_tree()
             serializer = PageSerializer(post, many=False)
             return Response(serializer.data, status=status.HTTP_200_OK)   
         except Page.DoesNotExist:
@@ -49,7 +49,7 @@ class PageViewSet(viewsets.ModelViewSet):
                 {"detail": "Urlen må innholde referanse til wiki treet"}, status=status.HTTP_400_BAD_REQUEST
             )
         try:
-            parent_id = self.get_wiki_from_tree().wikipost_id
+            parent_id = self.get_page_from_tree().page_id
             request.data["parent"] = parent_id
             serializer = PageCreateSerializer(data=request.data)
             if serializer.is_valid():
@@ -92,7 +92,7 @@ class PageViewSet(viewsets.ModelViewSet):
                 {"detail": "Urlen må innholde referanse til wiki treet"}, status=status.HTTP_400_BAD_REQUEST
             )
         try:
-            post = self.get_wiki_from_tree()
+            post = self.get_page_from_tree()
             if is_admin_user(request):
                 super().destroy(post)
                 return Response(
