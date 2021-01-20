@@ -8,6 +8,6 @@ from .user import User, UserManager
 from .user_badge import UserBadge
 from .registration import Registration
 from .warning import Warning
-from .wiki_post import WikiPost
+from .page import Page
 from .prioritiy import Priority
 from .notification import Notification

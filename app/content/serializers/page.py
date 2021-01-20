@@ -1,26 +1,26 @@
 from rest_framework import serializers
 from rest_framework.fields import SerializerMethodField
 
-from ..models import WikiPost
+from ..models import Page
 
 
 
 
-class WikiPostCreateSerializer(serializers.ModelSerializer):
+class PageCreateSerializer(serializers.ModelSerializer):
     class Meta:
-        model = WikiPost
+        model = Page
         fields = ["title", "content", "parent", "image","image_alt"]
 
-class WikiPostSerializer(serializers.ModelSerializer):
+class PageUpdateSerializer(serializers.ModelSerializer):
     class Meta:
-        model = WikiPost
+        model = Page
         fields = ["slug", "title", "content", "image","image_alt"]
 
 
-class WikiFolderSerializer(serializers.ModelSerializer):
+class PageSerializer(serializers.ModelSerializer):
     children = SerializerMethodField()
     class Meta:
-        model = WikiPost
+        model = Page
         fields = ["slug", "title", "content", "children", "image","image_alt"]
 
     def get_children(self, obj):

@@ -13,7 +13,7 @@ from .views import (
     UserBadgeViewSet,
     UserViewSet,
     WarningViewSet,
-    WikiPostViewSet,
+    PageViewSet,
     accept_form,
 )
 
@@ -36,7 +36,7 @@ router.register(
     basename="cheatsheet_list",
 )
 router.register("badge", UserBadgeViewSet, basename="badge")
-router.register('wiki', WikiPostViewSet)
+router.register('page', PageViewSet)
 
 urlpatterns = [
     url(r"", include(router.urls)),

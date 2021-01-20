@@ -9,4 +9,4 @@ from .accept_form import accept_form
 from .notification import NotificationViewSet
 from .warning import WarningViewSet
 from .news import NewsViewSet
-from .wiki import WikiPostViewSet
+from .page import PageViewSet

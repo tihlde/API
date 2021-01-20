@@ -7,17 +7,17 @@ from app.util.models import OptionalImage, BaseModel
 from mptt.models import MPTTModel, TreeForeignKey
 
 
-class WikiPost(MPTTModel, OptionalImage, BaseModel):
+class Page(MPTTModel, OptionalImage, BaseModel):
     parent = TreeForeignKey('self',null=True,blank=True, on_delete=models.CASCADE, related_name='children')
-    wikipost_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    Page_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     title = models.CharField(max_length=150, unique=False)
     slug = models.SlugField(max_length=50, unique=False, null=True) 
     content = models.TextField(null=True, blank=True)
 
     class Meta:
         unique_together = ("parent", "slug")
-        verbose_name = "Wiki Post"
-        verbose_name_plural = "Wiki Posts"
+        verbose_name = "Page"
+        verbose_name_plural = "Pages"
         ordering = ["-created_at"]
 
     def save(self, *args, **kwargs):
@@ -27,11 +27,13 @@ class WikiPost(MPTTModel, OptionalImage, BaseModel):
     @staticmethod
     def get_by_path(path):
         path = path.split('/')
-        node = WikiPost.objects.get(parent = None)
+        node = Page.objects.get(parent = None)
         for i in range(0,len(path)):
             for child in node.get_children():
                 if(child.slug == path[i]):
                     node = child
+        if(node.slug != path[len(path)-1]):
+            raise Page.DoesNotExist
         return node
 
 
