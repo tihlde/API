@@ -38,4 +38,4 @@ class Page(MPTTModel, OptionalImage, BaseModel):
 
 
     def __str__(self):
-        return f"{self.wikipost_id} {self.title}"
+        return f"{self.Page_id} {self.title}"

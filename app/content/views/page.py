@@ -49,7 +49,7 @@ class PageViewSet(viewsets.ModelViewSet):
                 {"detail": "Urlen må innholde referanse til wiki treet"}, status=status.HTTP_400_BAD_REQUEST
             )
         try:
-            parent_id = self.get_page_from_tree().page_id
+            parent_id = self.get_page_from_tree().Page_id
             request.data["parent"] = parent_id
             serializer = PageCreateSerializer(data=request.data)
             if serializer.is_valid():
