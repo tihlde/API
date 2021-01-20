@@ -2,7 +2,7 @@ from django.utils.translation import gettext as _
 from rest_framework import status, viewsets
 from rest_framework.response import Response
 
-from app.common.permissions import IsDev, IsHS, IsNoKorPromo
+from app.common.permissions import IsDev, IsHS
 from app.content.models import User
 from app.group.models import Group, Membership
 from app.group.serializers import MembershipSerializer
@@ -14,7 +14,7 @@ class MembershipViewSet(viewsets.ModelViewSet):
 
     serializer_class = MembershipSerializer
     queryset = Membership.objects.all()
-    permission_classes = [IsNoKorPromo]
+    permission_classes = [IsDev | IsHS]
     lookup_field = "user_id"
 
     def get_queryset(self):
@@ -23,8 +23,6 @@ class MembershipViewSet(viewsets.ModelViewSet):
     def get_permissions(self):
         if self.action == "retrieve":
             self.permission_classes = []
-        if self.action == "destroy":
-            self.permisson_classes = [IsHS | IsDev]
         return super(MembershipViewSet, self).get_permissions()
 
     def update(self, request, *args, **kwargs):

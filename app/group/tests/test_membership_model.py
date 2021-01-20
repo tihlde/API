@@ -43,7 +43,7 @@ def test_swap_leader_changes_leader(group):
 def test_swap_leader_if_no_leader(group):
     """
     Tests that swap leader changes the leader of the group,
-    when there is a leader and a member
+    when there is no leader and a member
     """
     membership = MembershipFactory(membership_type=MembershipType.MEMBER, group=group)
     membership.membership_type = MembershipType.LEADER

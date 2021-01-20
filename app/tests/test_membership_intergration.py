@@ -81,8 +81,8 @@ def test_update_as_user(user, membership):
     [
         (AdminGroup.HS, status.HTTP_200_OK, MembershipType.LEADER),
         (AdminGroup.INDEX, status.HTTP_200_OK, MembershipType.LEADER),
-        (AdminGroup.NOK, status.HTTP_200_OK, MembershipType.LEADER),
-        (AdminGroup.PROMO, status.HTTP_200_OK, MembershipType.LEADER),
+        (AdminGroup.NOK, status.HTTP_403_FORBIDDEN, MembershipType.MEMBER),
+        (AdminGroup.PROMO, status.HTTP_403_FORBIDDEN, MembershipType.MEMBER),
         ("Non_admin_group", status.HTTP_403_FORBIDDEN, None),
     ],
 )

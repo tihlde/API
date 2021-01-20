@@ -1,4 +1,3 @@
-from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.transaction import atomic
 
@@ -68,25 +67,22 @@ class Membership(BaseModel):
 
     @atomic
     def swap_board(self):
-        try:
-            try:
-                previous_leader = Membership.objects.select_for_update().get(
-                    group=self.group, membership_type=self.membership_type
-                )
-                if previous_leader.user == self.user:
-                    raise ValidationError("The user is the current leader")
-                MembershipHistory.from_membership(membership=previous_leader)
-                previous_leader.membership_type = MembershipType.MEMBER
-                previous_leader.save()
-            except Membership.DoesNotExist:
-                pass
+        previous_leader = (
+            Membership.objects.select_for_update()
+            .filter(group=self.group, membership_type=self.membership_type)
+            .first()
+        )
 
-            try:
-                current_membership = Membership.objects.select_for_update().get(
-                    group=self.group, user=self.user
-                )
-                MembershipHistory.from_membership(membership=current_membership)
-            except Membership.DoesNotExist:
-                pass
-        except ValidationError:
-            pass
+        if previous_leader and previous_leader.user != self.user:
+            MembershipHistory.from_membership(membership=previous_leader)
+            previous_leader.membership_type = MembershipType.MEMBER
+            previous_leader.save()
+
+        current_membership = (
+            Membership.objects.select_for_update()
+            .filter(group=self.group, user=self.user)
+            .first()
+        )
+
+        if current_membership:
+            MembershipHistory.from_membership(membership=current_membership)
