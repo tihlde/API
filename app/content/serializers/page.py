@@ -11,6 +11,7 @@ class PageCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Page
         fields = [
+            "slug",
             "title",
             "content",
             "parent",
