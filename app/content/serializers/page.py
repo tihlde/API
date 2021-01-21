@@ -27,13 +27,6 @@ class PageCreateSerializer(serializers.ModelSerializer):
     def get_path(self, obj):
         return obj.get_path()
 
-
-class PageUpdateSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Page
-        fields = ["slug", "title", "content", "image", "image_alt"]
-
-
 class PageSerializer(serializers.ModelSerializer):
     children = SerializerMethodField()
     path = SerializerMethodField()
