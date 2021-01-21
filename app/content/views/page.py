@@ -1,3 +1,4 @@
+from django.utils.translation import gettext as _
 from django.core.exceptions import MultipleObjectsReturned
 from rest_framework import status, viewsets
 from rest_framework.response import Response
@@ -27,11 +28,11 @@ class PageViewSet(viewsets.ModelViewSet):
             return Response(serializer.data, status=status.HTTP_200_OK)
         except Page.DoesNotExist:
             return Response(
-                {"detail": "Fant ikke wiki siden"}, status=status.HTTP_404_NOT_FOUND
+                {"detail": _("Fant ikke siden")}, status=status.HTTP_404_NOT_FOUND
             )
         except MultipleObjectsReturned:
             return Response(
-                {"detail": "Fant ikke wiki siden fordi treet er ødelagt"},
+                {"detail": _("Fant ikke siden fordi treet er ødelagt")},
                 status=status.HTTP_404_NOT_FOUND,
             )
 
@@ -42,18 +43,18 @@ class PageViewSet(viewsets.ModelViewSet):
             return Response(serializer.data, status=status.HTTP_200_OK)
         except Page.DoesNotExist:
             return Response(
-                {"detail": "Fant ikke wiki siden"}, status=status.HTTP_404_NOT_FOUND
+                {"detail": _("Fant ikke siden")}, status=status.HTTP_404_NOT_FOUND
             )
         except MultipleObjectsReturned:
             return Response(
-                {"detail": "Fant ikke wiki siden fordi treet er ødelagt"},
+                {"detail": _("Fant ikke siden fordi treet er ødelagt")},
                 status=status.HTTP_404_NOT_FOUND,
             )
 
     def post(self, request, *args, **kwargs):
         if "path" not in kwargs:
             return Response(
-                {"detail": "Urlen må innholde referanse til wiki treet"},
+                {"detail": _("Urlen må innholde referanse til side treet")},
                 status=status.HTTP_400_BAD_REQUEST,
             )
         try:
@@ -64,22 +65,24 @@ class PageViewSet(viewsets.ModelViewSet):
                 serializer.save()
                 return Response(serializer.data, status=status.HTTP_200_OK)
             return Response(
-                {"detail": serializer.errors}, status=status.HTTP_400_BAD_REQUEST
+                {"detail": _("En annen side med dette navnet eksisterer allerede i denne kategorien")}, status=status.HTTP_400_BAD_REQUEST
             )
         except Page.DoesNotExist:
             return Response(
-                {"detail": "Fant ikke wiki siden"}, status=status.HTTP_404_NOT_FOUND
+                {"detail": _("Fant ikke siden")}, status=status.HTTP_404_NOT_FOUND
             )
         except MultipleObjectsReturned:
             return Response(
-                {"detail": "Fant ikke wiki siden fordi treet er ødelagt"},
+                {"detail": _("Fant ikke siden fordi treet er ødelagt")},
                 status=status.HTTP_404_NOT_FOUND,
             )
+        except Exception as e:
+            print(e)
 
     def update(self, request, *args, **kwargs):
         if "path" not in kwargs:
             return Response(
-                {"detail": "Urlen må innholde referanse til wiki treet"},
+                {"detail": _("Urlen må innholde referanse til side treet")},
                 status=status.HTTP_400_BAD_REQUEST,
             )
         try:
@@ -93,38 +96,38 @@ class PageViewSet(viewsets.ModelViewSet):
             )
         except Page.DoesNotExist:
             return Response(
-                {"detail": "Fant ikke wiki siden"}, status=status.HTTP_404_NOT_FOUND
+                {"detail": _("Fant ikke siden")}, status=status.HTTP_404_NOT_FOUND
             )
         except MultipleObjectsReturned:
             return Response(
-                {"detail": "Fant ikke wiki siden fordi treet er ødelagt"},
+                {"detail": _("Fant ikke siden fordi treet er ødelagt")},
                 status=status.HTTP_404_NOT_FOUND,
             )
 
     def destroy(self, request, *args, **kwargs):
         if "path" not in kwargs:
             return Response(
-                {"detail": "Urlen må innholde referanse til wiki treet"},
+                {"detail": _("Urlen må innholde referanse til side treet")},
                 status=status.HTTP_400_BAD_REQUEST,
             )
         try:
             post = self.get_page_from_tree()
             if is_admin_user(request):
-                super().destroy(post)
+                self.perform_destroy(post)
                 return Response(
-                    {"detail": ("Wiki posten ble slettet")}, status=status.HTTP_200_OK,
+                    {"detail": _("siden ble slettet")}, status=status.HTTP_200_OK,
                 )
             return Response(
-                {"detail": ("Ikke riktig tilatelse for å slette en wiki post")},
+                {"detail": _("Ikke riktig tilatelse for å slette en siden")},
                 status=status.HTTP_403_FORBIDDEN,
             )
 
         except Page.DoesNotExist:
             return Response(
-                {"detail": "Fant ikke wiki siden"}, status=status.HTTP_404_NOT_FOUND
+                {"detail": _("Fant ikke siden")}, status=status.HTTP_404_NOT_FOUND
             )
         except MultipleObjectsReturned:
             return Response(
-                {"detail": "Fant ikke wiki siden fordi treet er ødelagt"},
+                {"detail": _("Fant ikke siden, fordi treet er ødelagt")},
                 status=status.HTTP_404_NOT_FOUND,
             )
