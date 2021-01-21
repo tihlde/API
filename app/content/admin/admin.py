@@ -28,6 +28,7 @@ class RegistrationAdmin(admin.ModelAdmin):
         admin_delete_registration,
     ]
 
+
 @admin.register(models.User)
 class UserAdmin(admin.ModelAdmin):
     list_display = ("user_id", "first_name", "last_name", "user_class", "user_study")

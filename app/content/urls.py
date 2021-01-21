@@ -9,11 +9,11 @@ from .views import (
     JobPostViewSet,
     NewsViewSet,
     NotificationViewSet,
+    PageViewSet,
     RegistrationViewSet,
     UserBadgeViewSet,
     UserViewSet,
     WarningViewSet,
-    PageViewSet,
     accept_form,
 )
 
@@ -36,7 +36,7 @@ router.register(
     basename="cheatsheet_list",
 )
 router.register("badge", UserBadgeViewSet, basename="badge")
-router.register('page', PageViewSet)
+router.register("page", PageViewSet)
 
 urlpatterns = [
     url(r"", include(router.urls)),
