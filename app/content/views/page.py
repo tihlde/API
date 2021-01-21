@@ -83,7 +83,7 @@ class PageViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST,
             )
         try:
-            post = self.self.get_wiki_from_tree()
+            post = self.get_page_from_tree()
             serializer = PageSerializer(post, data=request.data)
             if serializer.is_valid():
                 serializer.save()
