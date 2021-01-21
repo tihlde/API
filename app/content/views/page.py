@@ -7,7 +7,6 @@ from app.content.models import Page
 from app.content.serializers import (
     PageCreateSerializer,
     PageSerializer,
-    PageUpdateSerializer,
 )
 
 

@@ -20,4 +20,4 @@ from .user import (
 from .user_badge import UserBadgeSerializer
 from .warning import WarningSerializer
 from .news import NewsSerializer
-from .page import PageCreateSerializer, PageSerializer, PageUpdateSerializer
+from .page import PageCreateSerializer, PageSerializer
