@@ -2,12 +2,14 @@ from django.utils.translation import gettext as _
 from django.core.exceptions import MultipleObjectsReturned
 from rest_framework import status, viewsets
 from rest_framework.response import Response
+from rest_framework.decorators import action
 
 from app.common.permissions import IsDev, IsHS, is_admin_user
 from app.content.models import Page
 from app.content.serializers import (
     PageCreateSerializer,
     PageSerializer,
+    PageTreeSerializer
 )
 
 
@@ -131,3 +133,9 @@ class PageViewSet(viewsets.ModelViewSet):
                 {"detail": _("Fant ikke siden, fordi treet er ødelagt")},
                 status=status.HTTP_404_NOT_FOUND,
             )
+
+    @action(detail=False, methods=['get'])
+    def tree(self, request, *args, **kwargs):
+        root = Page.objects.get(parent = None)
+        serializer = PageTreeSerializer(root)
+        return Response(serializer.data, status=status.HTTP_200_OK)

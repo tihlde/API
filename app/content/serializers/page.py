@@ -33,10 +33,23 @@ class PageSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Page
-        fields = ["slug", "title", "content", "children", "path", "image", "image_alt"]
+        fields = ["slug", "title", "content", "path", "children", "image", "image_alt"]
 
     def get_children(self, obj):
         return [{"title": post.title, "slug": post.slug} for post in obj.get_children()]
 
     def get_path(self, obj):
         return obj.get_path()
+
+
+class PageTreeSerializer(serializers.ModelSerializer):
+    children = SerializerMethodField()
+
+    class Meta:
+        model = Page
+        fields = ["slug", "title", "children"]
+
+    def get_children(self, obj):
+        return [
+            PageTreeSerializer(post).data
+            for post in obj.get_children()]
