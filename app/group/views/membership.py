@@ -10,7 +10,6 @@ from app.group.serializers.membership import UpdateMembershipSerializer
 
 
 class MembershipViewSet(viewsets.ModelViewSet):
-    """API endpoint for Groups"""
 
     serializer_class = MembershipSerializer
     queryset = Membership.objects.all()
