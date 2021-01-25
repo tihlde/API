@@ -1,32 +1,36 @@
-from django.utils.translation import gettext as _
 from django.core.exceptions import MultipleObjectsReturned
+from django.utils.translation import gettext as _
 from rest_framework import status, viewsets
-from rest_framework.response import Response
 from rest_framework.decorators import action
+from rest_framework.response import Response
 
-from app.common.permissions import IsDev, IsHS, is_admin_user
+from app.common.permissions import IsDev
 from app.content.models import Page
 from app.content.serializers import (
-    PageCreateSerializer,
     PageSerializer,
-    PageTreeSerializer
+    PageTreeSerializer,
 )
 
 
 class PageViewSet(viewsets.ModelViewSet):
     queryset = Page.objects.all()
     serializer_class = PageSerializer
-    permission_classes = [IsHS | IsDev]
-    lookup_url_kwarg = "path"
-    lookup_value_regex = "[\w\d_/-]+"
+    permission_classes = [IsDev]
+    lookup_url_kwarg = "path" 
+    lookup_value_regex = ".*"
 
     def get_page_from_tree(self):
         return Page.get_by_path(self.kwargs["path"])
+    
+    def get_permissions(self):
+        if self.action == "retrieve":
+            self.permission_classes = []
+        return super(PageViewSet, self).get_permissions()
 
     def retrieve(self, request, *args, **kwargs):
         try:
-            post = self.get_page_from_tree()
-            serializer = PageSerializer(post, many=False)
+            page = self.get_page_from_tree()
+            serializer = PageSerializer(page, many=False)
             return Response(serializer.data, status=status.HTTP_200_OK)
         except Page.DoesNotExist:
             return Response(
@@ -40,8 +44,8 @@ class PageViewSet(viewsets.ModelViewSet):
 
     def list(self, request, *args, **kwargs):
         try:
-            post = self.queryset.get(parent=None)
-            serializer = PageSerializer(post, many=False)
+            page = self.queryset.get(parent=None)
+            serializer = PageSerializer(page, many=False)
             return Response(serializer.data, status=status.HTTP_200_OK)
         except Page.DoesNotExist:
             return Response(
@@ -55,15 +59,19 @@ class PageViewSet(viewsets.ModelViewSet):
 
     def create(self, request, *args, **kwargs):
         try:
-            parent_id = Page.get_by_path(request.data["path"]).Page_id
-            print("hello")
+            parent_id = Page.get_by_path(request.data["path"]).page_id
             request.data["parent"] = parent_id
-            serializer = PageCreateSerializer(data=request.data)
+            serializer = PageSerializer(data=request.data)
             if serializer.is_valid():
                 serializer.save()
                 return Response(serializer.data, status=status.HTTP_200_OK)
             return Response(
-                {"detail": _("En annen side med dette navnet eksisterer allerede i denne kategorien")}, status=status.HTTP_400_BAD_REQUEST
+                {
+                    "detail": _(
+                        "En annen side med dette navnet eksisterer allerede i denne kategorien"
+                    )
+                },
+                status=status.HTTP_400_BAD_REQUEST,
             )
         except Page.DoesNotExist:
             return Response(
@@ -74,18 +82,12 @@ class PageViewSet(viewsets.ModelViewSet):
                 {"detail": _("Fant ikke siden fordi treet er ødelagt")},
                 status=status.HTTP_404_NOT_FOUND,
             )
-        except Exception as e:
-            print(e)
 
     def update(self, request, *args, **kwargs):
-        if "path" not in kwargs:
-            return Response(
-                {"detail": _("Urlen må innholde referanse til side treet")},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
         try:
-            post = self.get_page_from_tree()
-            serializer = PageSerializer(post, data=request.data)
+            page = self.get_page_from_tree()
+            page.parent = Page.get_by_path(request.data["path"])
+            serializer = PageSerializer(page, data=request.data)
             if serializer.is_valid():
                 serializer.save()
                 return Response(serializer.data, status=status.HTTP_200_OK)
@@ -109,17 +111,11 @@ class PageViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST,
             )
         try:
-            post = self.get_page_from_tree()
-            if is_admin_user(request):
-                self.perform_destroy(post)
-                return Response(
-                    {"detail": _("siden ble slettet")}, status=status.HTTP_200_OK,
-                )
+            page = self.get_page_from_tree()
+            self.perform_destroy(page)
             return Response(
-                {"detail": _("Ikke riktig tilatelse for å slette en siden")},
-                status=status.HTTP_403_FORBIDDEN,
+                {"detail": _("Siden ble slettet")}, status=status.HTTP_200_OK,
             )
-
         except Page.DoesNotExist:
             return Response(
                 {"detail": _("Fant ikke siden")}, status=status.HTTP_404_NOT_FOUND
@@ -130,8 +126,8 @@ class PageViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_404_NOT_FOUND,
             )
 
-    @action(detail=False, methods=['get'])
+    @action(detail=False, methods=["get"])
     def tree(self, request, *args, **kwargs):
-        root = Page.objects.get(parent = None)
+        root = Page.objects.get(parent=None)
         serializer = PageTreeSerializer(root)
         return Response(serializer.data, status=status.HTTP_200_OK)

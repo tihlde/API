@@ -9,12 +9,11 @@ import pytest
 
 from app.common.enums import AdminGroup
 from app.content.factories.user_factory import UserFactory
-from app.content.models.wiki_post import WikiPost
+from app.content.models import Page
 
-WIKI_PATH = "/api/v1/wiki/"
-WIKI_POST_TEST_DATA = {
+PAGE_PATH = "/api/v1/page/"
+PAGE_POST_TEST_DATA = {
     "title": "foo",
-    "description": "bar",
     "content": "foobar",
 }
 
@@ -32,7 +31,7 @@ def client():
 
 
 def create_test_post(**kwargs):
-    post = WikiPost(**{**WIKI_POST_TEST_DATA, **kwargs})
+    post = Page(**{**PAGE_POST_TEST_DATA, **kwargs})
     post.save()
     return post
 
@@ -45,40 +44,39 @@ def test_post():
 @pytest.mark.django_db
 def test_create_post_without_permissions(client, test_post):
     """
-    Validate that one can not create a WikiPost without the correct permissions.
+    Validate that one can not create a Page without the correct permissions.
     """
-    response = client.post(WIKI_PATH, WIKI_POST_TEST_DATA, format="json")
+    response = client.post(PAGE_PATH, PAGE_POST_TEST_DATA, format="json")
     assert not status.is_success(response.status_code)
 
 
 @pytest.mark.django_db
 def test_create_post(client):
     """
-    Validate that creation of WikiPosts via the endpoint works
+    Validate that creation of Page via the endpoint works
     """
-    response = client.post(WIKI_PATH, WIKI_POST_TEST_DATA, format="json")
+    response = client.post(PAGE_PATH, PAGE_POST_TEST_DATA, format="json")
     assert status.is_success(response.status_code)
 
-    post = WikiPost.objects.get()
-    assert post.title == WIKI_POST_TEST_DATA["title"]
-    assert post.description == WIKI_POST_TEST_DATA["description"]
-    assert post.content == WIKI_POST_TEST_DATA["content"]
+    post = Page.objects.get()
+    assert post.title == PAGE_POST_TEST_DATA["title"]
+    assert post.content == PAGE_POST_TEST_DATA["content"]
 
 
 @pytest.mark.django_db
 def test_get_list(client):
     """
-    Validate that getting WikiPosts as a list works as intended and has correct format.
+    Validate that getting Page as a list works as intended and has correct format.
     """
     posts = [create_test_post(title="post1"), create_test_post(title="post2")]
     want_posts = []
     posts.reverse()
     for post in posts:
         want_posts.append(
-            {"slug": post.slug, "title": post.title, "description": post.description,}
+            {"slug": post.slug, "title": post.title}
         )
 
-    response = client.get(WIKI_PATH)
+    response = client.get(PAGE_PATH)
 
     assert status.is_success(response.status_code)
     got_posts = response.json()
@@ -87,7 +85,7 @@ def test_get_list(client):
 
 @pytest.mark.django_db
 def test_get_post(client, test_post):
-    path = urljoin(WIKI_PATH, str(test_post.slug) + "/")
+    path = urljoin(PAGE_PATH, str(test_post.slug) + "/")
     response = client.get(path)
 
     assert status.is_success(response.status_code)
@@ -95,5 +93,4 @@ def test_get_post(client, test_post):
 
     assert got_post["slug"] == str(test_post.slug)
     assert got_post["title"] == test_post.title
-    assert got_post["description"] == test_post.description
     assert got_post["content"] == test_post.content
