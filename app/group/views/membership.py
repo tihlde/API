@@ -20,7 +20,7 @@ class MembershipViewSet(viewsets.ModelViewSet):
         return self.queryset.filter(group__slug=self.kwargs["slug"])
 
     def get_permissions(self):
-        if self.action == "retrieve":
+        if self.request.method == "GET":
             self.permission_classes = []
         return super(MembershipViewSet, self).get_permissions()
 
