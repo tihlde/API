@@ -12,7 +12,7 @@ class Page(MPTTModel, OptionalImage, BaseModel):
     parent = TreeForeignKey(
         "self", null=True, blank=True, on_delete=models.CASCADE, related_name="children"
     )
-    Page_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    page_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     title = models.CharField(max_length=150, unique=False)
     slug = models.SlugField(max_length=50, unique=False, null=True)
     content = models.TextField(blank=True)
@@ -29,13 +29,15 @@ class Page(MPTTModel, OptionalImage, BaseModel):
 
     @staticmethod
     def get_by_path(path):
-        path = path.split("/")
+        page_list = path.split("/")
         node = Page.objects.get(parent=None)
-        for i in range(0, len(path)):
+        if path == "":
+            return node
+        for i in range(0, len(page_list)):
             for child in node.get_children():
                 if child.slug == path[i]:
                     node = child
-        if node.slug != path[len(path) - 1]:
+        if node.slug != page_list[len(page_list) - 1]:
             raise Page.DoesNotExist
         return node
 
@@ -47,4 +49,4 @@ class Page(MPTTModel, OptionalImage, BaseModel):
         return path
 
     def __str__(self):
-        return f"{self.Page_id} {self.title}"
+        return f"{self.page_id} {self.title}"

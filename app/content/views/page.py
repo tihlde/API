@@ -53,14 +53,10 @@ class PageViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_404_NOT_FOUND,
             )
 
-    def post(self, request, *args, **kwargs):
-        if "path" not in kwargs:
-            return Response(
-                {"detail": _("Urlen må innholde referanse til side treet")},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+    def create(self, request, *args, **kwargs):
         try:
-            parent_id = self.get_page_from_tree().Page_id
+            parent_id = Page.get_by_path(request.data["path"]).Page_id
+            print("hello")
             request.data["parent"] = parent_id
             serializer = PageCreateSerializer(data=request.data)
             if serializer.is_valid():
