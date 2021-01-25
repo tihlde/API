@@ -9,6 +9,7 @@ from app.content.models import Page
 from app.content.serializers import (
     PageSerializer,
     PageTreeSerializer,
+    CreateUpdatePageSerializer
 )
 
 
@@ -23,7 +24,7 @@ class PageViewSet(viewsets.ModelViewSet):
         return Page.get_by_path(self.kwargs["path"])
     
     def get_permissions(self):
-        if self.action == "retrieve":
+        if self.request.method =="GET":
             self.permission_classes = []
         return super(PageViewSet, self).get_permissions()
 
@@ -61,7 +62,7 @@ class PageViewSet(viewsets.ModelViewSet):
         try:
             parent_id = Page.get_by_path(request.data["path"]).page_id
             request.data["parent"] = parent_id
-            serializer = PageSerializer(data=request.data)
+            serializer = CreateUpdatePageSerializer(data=request.data)
             if serializer.is_valid():
                 serializer.save()
                 return Response(serializer.data, status=status.HTTP_200_OK)
@@ -87,7 +88,7 @@ class PageViewSet(viewsets.ModelViewSet):
         try:
             page = self.get_page_from_tree()
             page.parent = Page.get_by_path(request.data["path"])
-            serializer = PageSerializer(page, data=request.data)
+            serializer = CreateUpdatePageSerializer(page, data=request.data)
             if serializer.is_valid():
                 serializer.save()
                 return Response(serializer.data, status=status.HTTP_200_OK)

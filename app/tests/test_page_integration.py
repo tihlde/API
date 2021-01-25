@@ -41,6 +41,7 @@ def test_post():
     return create_test_post()
 
 
+
 @pytest.mark.django_db
 def test_create_post_without_permissions(client, test_post):
     """
