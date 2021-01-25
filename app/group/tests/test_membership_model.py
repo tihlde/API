@@ -63,7 +63,7 @@ def test_create_leader(group):
 
 
 @pytest.mark.django_db
-def test_swap_leader_dose_not_create_two_leaders(group):
+def test_swap_leader_does_not_create_two_leaders(group):
     """
     Tests that swap leader changes the leader of the group,
     when there is a leader and a member
