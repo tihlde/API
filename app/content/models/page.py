@@ -41,7 +41,6 @@ class Page(MPTTModel, OptionalImage, BaseModel):
             raise Page.DoesNotExist
         return node
 
-
     def get_path(self):
         family = self.get_ancestors(include_self=True)[1:]
         path = ""

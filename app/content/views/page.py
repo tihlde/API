@@ -6,24 +6,21 @@ from rest_framework.response import Response
 
 from app.common.permissions import IsDev, IsHS
 from app.content.models import Page
-from app.content.serializers import (
-    PageSerializer,
-    PageTreeSerializer,
-)
+from app.content.serializers import PageSerializer, PageTreeSerializer
 
 
 class PageViewSet(viewsets.ModelViewSet):
     queryset = Page.objects.all()
     serializer_class = PageSerializer
     permission_classes = [IsDev | IsHS]
-    lookup_url_kwarg = "path" 
+    lookup_url_kwarg = "path"
     lookup_value_regex = ".*"
 
     def get_page_from_tree(self):
         return Page.get_by_path(self.kwargs["path"])
-    
+
     def get_permissions(self):
-        if self.request.method =="GET":
+        if self.request.method == "GET":
             self.permission_classes = []
         return super(PageViewSet, self).get_permissions()
 
@@ -60,7 +57,7 @@ class PageViewSet(viewsets.ModelViewSet):
     def create(self, request, *args, **kwargs):
         try:
             parent = Page.get_by_path(request.data["path"])
-            page = Page(parent = parent)
+            page = Page(parent=parent)
             serializer = PageSerializer(page, data=request.data)
             if serializer.is_valid():
                 serializer.save()
@@ -114,8 +111,13 @@ class PageViewSet(viewsets.ModelViewSet):
             page = self.get_page_from_tree()
             if len(page.get_children()) > 0:
                 return Response(
-                {"detail": _("Du kan ikke slette en side som har undersider, slett eller flytt undersidene først")}, status=status.HTTP_403_FORBIDDEN,
-            )
+                    {
+                        "detail": _(
+                            "Du kan ikke slette en side som har undersider, slett eller flytt undersidene først"
+                        )
+                    },
+                    status=status.HTTP_403_FORBIDDEN,
+                )
             self.perform_destroy(page)
             return Response(
                 {"detail": _("Siden ble slettet")}, status=status.HTTP_200_OK,

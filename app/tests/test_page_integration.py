@@ -1,17 +1,10 @@
-from app.content.factories.page_factory import PageFactory
-from app.util.test_utils import get_api_client
-from urllib.parse import urljoin
-
-from django.contrib.auth.models import Group
 from rest_framework import status
-from rest_framework.authtoken.models import Token
-from rest_framework.test import APIClient
 
 import pytest
 
 from app.common.enums import AdminGroup
-from app.content.factories.user_factory import UserFactory
-from app.content.models import Page
+from app.content.factories.page_factory import PageFactory
+from app.util.test_utils import get_api_client
 
 PAGE_URL = "/api/v1/page/"
 
@@ -34,7 +27,7 @@ def _get_page_put_data(page):
 
 @pytest.mark.django_db
 def test_list_returns_root_as_anonymous_user(default_client, page):
-    """Tests if an anonymous user can list pages"""
+    """Tests if an anonymous user can list pages and receive the root page"""
 
     url = _get_page_url()
     response = default_client.get(url)
@@ -85,6 +78,7 @@ def test_update_as_user(page, user):
 
     assert response.status_code == status.HTTP_403_FORBIDDEN
 
+
 @pytest.mark.django_db
 @pytest.mark.parametrize(
     ("group_name", "expected_status_code", "new_content"),
@@ -99,7 +93,7 @@ def test_update_as_user(page, user):
 def test_update_as_group_user(
     page, user, group_name, expected_status_code, new_content,
 ):
-    """Tests if different groups ability to update a page"""
+    """Tests different groups ability to update a page"""
     expected_content = new_content if new_content else page.content
 
     client = get_api_client(user=user, group_name=group_name)
@@ -114,9 +108,9 @@ def test_update_as_group_user(
 
 @pytest.mark.django_db
 def test_change_parent_page_of_a_page(admin_user, parent_page):
-    """Tests if different groups ability to update a page"""
-    page1 = PageFactory(parent = parent_page)
-    page2 = PageFactory(parent = parent_page)
+    """Tests moving a page to another place in the tree"""
+    page1 = PageFactory(parent=parent_page)
+    page2 = PageFactory(parent=parent_page)
     client = get_api_client(user=admin_user)
     url = _get_page_url(page1)
     data = _get_page_put_data(page=page1)
@@ -141,7 +135,7 @@ def test_change_parent_page_of_a_page(admin_user, parent_page):
     ],
 )
 def test_create_as_group_user(page, user, group_name, expected_status_code):
-    """Tests if different groups ability to create a page"""
+    """Tests different groups ability to create a page"""
 
     client = get_api_client(user=user, group_name=group_name)
     url = _get_page_url()
@@ -150,6 +144,7 @@ def test_create_as_group_user(page, user, group_name, expected_status_code):
     response = client.post(url, data=data)
 
     assert response.status_code == expected_status_code
+
 
 @pytest.mark.django_db
 @pytest.mark.parametrize(
@@ -163,7 +158,7 @@ def test_create_as_group_user(page, user, group_name, expected_status_code):
     ],
 )
 def test_delete_as_group_user(page, user, group_name, expected_status_code):
-    """Tests if different groups ability to create a page"""
+    """Tests if different groups ability to delete a page"""
 
     client = get_api_client(user=user, group_name=group_name)
     url = _get_page_url(page)
@@ -173,11 +168,11 @@ def test_delete_as_group_user(page, user, group_name, expected_status_code):
 
 
 @pytest.mark.django_db
-def test_delete_as_group_user(parent_page, admin_user):
-    """Tests if different groups ability to create a page"""
+def test_delete_cannot_delete_page_with_children(parent_page, admin_user):
+    """Tests that you cannot delete a page that has subpages"""
 
-    page1 = PageFactory(parent = parent_page)
-    page2 = PageFactory(parent = page1)
+    page1 = PageFactory(parent=parent_page)
+    PageFactory(parent=page1)
     client = get_api_client(user=admin_user)
     url = _get_page_url(page1)
     response = client.delete(url)
@@ -187,15 +182,12 @@ def test_delete_as_group_user(parent_page, admin_user):
 
 @pytest.mark.django_db
 def test_create_as_group_user_fails_when_no_root_exists(admin_user):
-    """Tests if different groups ability to create a page"""
+    """Tests that you cannot create a root page"""
 
     client = get_api_client(user=admin_user)
     url = _get_page_url()
-    data = {
-        "title": "new page",
-        "path": ""
-    }
+    data = {"title": "new page", "path": ""}
     response = client.post(url, data=data)
     print(response)
 
-    assert response.status_code ==  status.HTTP_404_NOT_FOUND
+    assert response.status_code == status.HTTP_404_NOT_FOUND

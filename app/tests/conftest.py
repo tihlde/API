@@ -80,5 +80,3 @@ def page():
 @pytest.fixture()
 def parent_page():
     return ParentPageFactory()
-
-

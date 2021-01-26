@@ -3,6 +3,7 @@ from factory.django import DjangoModelFactory
 
 from app.content.models.page import Page
 
+
 class ParentPageFactory(DjangoModelFactory):
     class Meta:
         model = Page
@@ -12,6 +13,7 @@ class ParentPageFactory(DjangoModelFactory):
     parent = None
     content = factory.Faker("paragraph", nb_sentences=10)
 
+
 class PageFactory(DjangoModelFactory):
     class Meta:
         model = Page
@@ -20,4 +22,3 @@ class PageFactory(DjangoModelFactory):
     slug = factory.Sequence(lambda n: f"Page{n}")
     parent = factory.SubFactory(ParentPageFactory)
     content = factory.Faker("paragraph", nb_sentences=10)
-
