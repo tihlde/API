@@ -35,8 +35,8 @@ class PageViewSet(viewsets.ModelViewSet):
             )
         except MultipleObjectsReturned:
             return Response(
-                {"detail": _("Fant ikke siden fordi treet er ødelagt")},
-                status=status.HTTP_404_NOT_FOUND,
+                {"detail": _("Kan ikke lage siden fordi, treet er ødelagt")},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
     def list(self, request, *args, **kwargs):
@@ -50,8 +50,8 @@ class PageViewSet(viewsets.ModelViewSet):
             )
         except MultipleObjectsReturned:
             return Response(
-                {"detail": _("Fant ikke siden fordi treet er ødelagt")},
-                status=status.HTTP_404_NOT_FOUND,
+                {"detail": _("Kan ikke lage siden fordi, treet er ødelagt")},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
     def create(self, request, *args, **kwargs):
@@ -76,8 +76,8 @@ class PageViewSet(viewsets.ModelViewSet):
             )
         except MultipleObjectsReturned:
             return Response(
-                {"detail": _("Fant ikke siden fordi treet er ødelagt")},
-                status=status.HTTP_404_NOT_FOUND,
+                {"detail": _("Kan ikke lage siden, fordi treet er ødelagt")},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
     def update(self, request, *args, **kwargs):
@@ -97,8 +97,8 @@ class PageViewSet(viewsets.ModelViewSet):
             )
         except MultipleObjectsReturned:
             return Response(
-                {"detail": _("Fant ikke siden fordi treet er ødelagt")},
-                status=status.HTTP_404_NOT_FOUND,
+                {"detail": _("Kan ikke lage siden, fordi treet er ødelagt")},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
     def destroy(self, request, *args, **kwargs):
@@ -128,8 +128,8 @@ class PageViewSet(viewsets.ModelViewSet):
             )
         except MultipleObjectsReturned:
             return Response(
-                {"detail": _("Fant ikke siden, fordi treet er ødelagt")},
-                status=status.HTTP_404_NOT_FOUND,
+                {"detail": _("Kan ikke lage siden, fordi treet er ødelagt")},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
     @action(detail=False, methods=["get"])
