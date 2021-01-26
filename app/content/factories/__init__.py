@@ -4,3 +4,5 @@ from .user_factory import UserFactory
 from .registration_factory import RegistrationFactory
 from .cheatsheet_factory import CheatsheetFactory
 from .news_factory import NewsFactory
+from .page_factory import PageFactory
+from .page_factory import ParentPageFactory

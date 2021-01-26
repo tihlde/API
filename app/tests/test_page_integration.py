@@ -1,3 +1,5 @@
+from app.content.factories.page_factory import PageFactory
+from app.util.test_utils import get_api_client
 from urllib.parse import urljoin
 
 from django.contrib.auth.models import Group
@@ -11,87 +13,189 @@ from app.common.enums import AdminGroup
 from app.content.factories.user_factory import UserFactory
 from app.content.models import Page
 
-PAGE_PATH = "/api/v1/page/"
-PAGE_POST_TEST_DATA = {
-    "title": "foo",
-    "content": "foobar",
-}
+PAGE_URL = "/api/v1/page/"
 
 
-@pytest.fixture()
-def client():
-    test_user = UserFactory(
-        user_id="dev", password="123", first_name="member", last_name="user"
-    )
-    test_user.groups.add(Group.objects.create(name=AdminGroup.INDEX))
-    token = Token.objects.get(user_id=test_user.user_id)
-    client = APIClient()
-    client.credentials(HTTP_X_CSRF_TOKEN=token)
-    return client
+def _get_page_url(page=None):
+    return f"{PAGE_URL}{page.get_path()}" if (page) else f"{PAGE_URL}"
 
 
-def create_test_post(**kwargs):
-    post = Page(**{**PAGE_POST_TEST_DATA, **kwargs})
-    post.save()
-    return post
+def _get_page_post_data(page):
+    return {
+        "slug": page.slug,
+        "title": page.title,
+        "path": page.parent.get_path(),
+    }
 
 
-@pytest.fixture()
-def test_post():
-    return create_test_post()
-
+def _get_page_put_data(page):
+    return {**_get_page_post_data(page), "content": "Awesome content :"}
 
 
 @pytest.mark.django_db
-def test_create_post_without_permissions(client, test_post):
-    """
-    Validate that one can not create a Page without the correct permissions.
-    """
-    response = client.post(PAGE_PATH, PAGE_POST_TEST_DATA, format="json")
-    assert not status.is_success(response.status_code)
+def test_list_returns_root_as_anonymous_user(default_client, page):
+    """Tests if an anonymous user can list pages"""
+
+    url = _get_page_url()
+    response = default_client.get(url)
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json()["slug"] == page.parent.slug
 
 
 @pytest.mark.django_db
-def test_create_post(client):
-    """
-    Validate that creation of Page via the endpoint works
-    """
-    response = client.post(PAGE_PATH, PAGE_POST_TEST_DATA, format="json")
-    assert status.is_success(response.status_code)
+def test_retrieve_page_as_anonymous_user(default_client, page):
+    """Tests if an anonymous user can retrieve a page"""
+    url = _get_page_url(page)
+    response = default_client.get(url)
 
-    post = Page.objects.get()
-    assert post.title == PAGE_POST_TEST_DATA["title"]
-    assert post.content == PAGE_POST_TEST_DATA["content"]
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json()["path"] == page.get_path()
 
 
 @pytest.mark.django_db
-def test_get_list(client):
-    """
-    Validate that getting Page as a list works as intended and has correct format.
-    """
-    posts = [create_test_post(title="post1"), create_test_post(title="post2")]
-    want_posts = []
-    posts.reverse()
-    for post in posts:
-        want_posts.append(
-            {"slug": post.slug, "title": post.title}
-        )
+def test_retrieve_as_user(page, user):
+    """Tests if a logged in user can retrieve a page"""
 
-    response = client.get(PAGE_PATH)
+    url = _get_page_url(page)
+    client = get_api_client(user=user)
+    response = client.get(url)
 
-    assert status.is_success(response.status_code)
-    got_posts = response.json()
-    assert got_posts == want_posts
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json()["path"] == page.get_path()
 
 
 @pytest.mark.django_db
-def test_get_post(client, test_post):
-    path = urljoin(PAGE_PATH, str(test_post.slug) + "/")
-    response = client.get(path)
+def test_update_as_anonymous_user(default_client, page):
+    """Tests if an anonymous user fails to update a page"""
 
-    assert status.is_success(response.status_code)
-    got_post = response.json()
+    url = _get_page_url(page)
+    response = default_client.put(url)
 
-    assert got_post["slug"] == str(test_post.slug)
-    assert got_post["title"] == test_post.title
-    assert got_post["content"] == test_post.content
+    assert response.status_code == status.HTTP_403_FORBIDDEN
+
+
+@pytest.mark.django_db
+def test_update_as_user(page, user):
+    """Tests if a logged in user fails to update a page"""
+
+    client = get_api_client(user=user)
+    url = _get_page_url(page)
+    response = client.put(url)
+
+    assert response.status_code == status.HTTP_403_FORBIDDEN
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    ("group_name", "expected_status_code", "new_content"),
+    [
+        (AdminGroup.HS, status.HTTP_200_OK, "Awesome content :"),
+        (AdminGroup.INDEX, status.HTTP_200_OK, "Awesome content :"),
+        (AdminGroup.NOK, status.HTTP_403_FORBIDDEN, None),
+        (AdminGroup.PROMO, status.HTTP_403_FORBIDDEN, None),
+        ("Non_admin_group", status.HTTP_403_FORBIDDEN, None),
+    ],
+)
+def test_update_as_group_user(
+    page, user, group_name, expected_status_code, new_content,
+):
+    """Tests if different groups ability to update a page"""
+    expected_content = new_content if new_content else page.content
+
+    client = get_api_client(user=user, group_name=group_name)
+    url = _get_page_url(page)
+    data = _get_page_put_data(page=page)
+    response = client.put(url, data=data)
+    page.refresh_from_db()
+
+    assert response.status_code == expected_status_code
+    assert page.content == expected_content
+
+
+@pytest.mark.django_db
+def test_change_parent_page_of_a_page(admin_user, parent_page):
+    """Tests if different groups ability to update a page"""
+    page1 = PageFactory(parent = parent_page)
+    page2 = PageFactory(parent = parent_page)
+    client = get_api_client(user=admin_user)
+    url = _get_page_url(page1)
+    data = _get_page_put_data(page=page1)
+    data["path"] = page2.get_path()
+    response = client.put(url, data=data)
+    page1.refresh_from_db()
+
+    assert response.status_code == status.HTTP_200_OK
+    assert page1.parent.page_id == page2.page_id
+    assert response.json()["path"] == page2.get_path() + response.json()["slug"] + "/"
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    ("group_name", "expected_status_code"),
+    [
+        (AdminGroup.HS, status.HTTP_200_OK),
+        (AdminGroup.INDEX, status.HTTP_200_OK),
+        (AdminGroup.NOK, status.HTTP_403_FORBIDDEN),
+        (AdminGroup.PROMO, status.HTTP_403_FORBIDDEN),
+        ("Non_admin_group", status.HTTP_403_FORBIDDEN),
+    ],
+)
+def test_create_as_group_user(page, user, group_name, expected_status_code):
+    """Tests if different groups ability to create a page"""
+
+    client = get_api_client(user=user, group_name=group_name)
+    url = _get_page_url()
+    data = _get_page_post_data(page=page)
+    data["title"] = "New page"
+    response = client.post(url, data=data)
+
+    assert response.status_code == expected_status_code
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    ("group_name", "expected_status_code"),
+    [
+        (AdminGroup.HS, status.HTTP_200_OK),
+        (AdminGroup.INDEX, status.HTTP_200_OK),
+        (AdminGroup.NOK, status.HTTP_403_FORBIDDEN),
+        (AdminGroup.PROMO, status.HTTP_403_FORBIDDEN),
+        ("Non_admin_group", status.HTTP_403_FORBIDDEN),
+    ],
+)
+def test_delete_as_group_user(page, user, group_name, expected_status_code):
+    """Tests if different groups ability to create a page"""
+
+    client = get_api_client(user=user, group_name=group_name)
+    url = _get_page_url(page)
+    response = client.delete(url)
+
+    assert response.status_code == expected_status_code
+
+
+@pytest.mark.django_db
+def test_delete_as_group_user(parent_page, admin_user):
+    """Tests if different groups ability to create a page"""
+
+    page1 = PageFactory(parent = parent_page)
+    page2 = PageFactory(parent = page1)
+    client = get_api_client(user=admin_user)
+    url = _get_page_url(page1)
+    response = client.delete(url)
+
+    assert response.status_code == status.HTTP_403_FORBIDDEN
+
+
+@pytest.mark.django_db
+def test_create_as_group_user_fails_when_no_root_exists(admin_user):
+    """Tests if different groups ability to create a page"""
+
+    client = get_api_client(user=admin_user)
+    url = _get_page_url()
+    data = {
+        "title": "new page",
+        "path": ""
+    }
+    response = client.post(url, data=data)
+    print(response)
+
+    assert response.status_code ==  status.HTTP_404_NOT_FOUND

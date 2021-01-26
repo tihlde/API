@@ -33,6 +33,8 @@ class Page(MPTTModel, OptionalImage, BaseModel):
         if path == "":
             return node
         page_list = path.split("/")
+        if page_list[-1] == "":
+            page_list.remove("")
         for page in page_list:
             node = next(child for child in node.get_children() if child.slug == page)
         if node.slug != page_list[-1]:

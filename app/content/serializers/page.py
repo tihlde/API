@@ -17,9 +17,6 @@ class PageSerializer(serializers.ModelSerializer):
     def get_path(self, obj):
         return obj.get_path()
 
-class CreateUpdatePageSerializer(PageSerializer):
-    class Meta(PageSerializer.Meta):
-        fields = PageSerializer.Meta.fields + ('parent',)
 
 class PageTreeSerializer(serializers.ModelSerializer):
     children = SerializerMethodField()

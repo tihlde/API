@@ -4,19 +4,18 @@ from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from app.common.permissions import IsDev
+from app.common.permissions import IsDev, IsHS
 from app.content.models import Page
 from app.content.serializers import (
     PageSerializer,
     PageTreeSerializer,
-    CreateUpdatePageSerializer
 )
 
 
 class PageViewSet(viewsets.ModelViewSet):
     queryset = Page.objects.all()
     serializer_class = PageSerializer
-    permission_classes = [IsDev]
+    permission_classes = [IsDev | IsHS]
     lookup_url_kwarg = "path" 
     lookup_value_regex = ".*"
 
@@ -60,9 +59,9 @@ class PageViewSet(viewsets.ModelViewSet):
 
     def create(self, request, *args, **kwargs):
         try:
-            parent_id = Page.get_by_path(request.data["path"]).page_id
-            request.data["parent"] = parent_id
-            serializer = CreateUpdatePageSerializer(data=request.data)
+            parent = Page.get_by_path(request.data["path"])
+            page = Page(parent = parent)
+            serializer = PageSerializer(page, data=request.data)
             if serializer.is_valid():
                 serializer.save()
                 return Response(serializer.data, status=status.HTTP_200_OK)
@@ -88,7 +87,7 @@ class PageViewSet(viewsets.ModelViewSet):
         try:
             page = self.get_page_from_tree()
             page.parent = Page.get_by_path(request.data["path"])
-            serializer = CreateUpdatePageSerializer(page, data=request.data)
+            serializer = PageSerializer(page, data=request.data)
             if serializer.is_valid():
                 serializer.save()
                 return Response(serializer.data, status=status.HTTP_200_OK)
@@ -113,6 +112,10 @@ class PageViewSet(viewsets.ModelViewSet):
             )
         try:
             page = self.get_page_from_tree()
+            if len(page.get_children()) > 0:
+                return Response(
+                {"detail": _("Du kan ikke slette en side som har undersider, slett eller flytt undersidene først")}, status=status.HTTP_403_FORBIDDEN,
+            )
             self.perform_destroy(page)
             return Response(
                 {"detail": _("Siden ble slettet")}, status=status.HTTP_200_OK,
