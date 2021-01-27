@@ -188,6 +188,5 @@ def test_create_as_group_user_fails_when_no_root_exists(admin_user):
     url = _get_page_url()
     data = {"title": "new page", "path": ""}
     response = client.post(url, data=data)
-    print(response)
 
     assert response.status_code == status.HTTP_404_NOT_FOUND

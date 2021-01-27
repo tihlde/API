@@ -4,6 +4,8 @@ from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
+from sentry_sdk import capture_exception
+
 from app.common.permissions import IsDev, IsHS
 from app.content.models import Page
 from app.content.serializers import PageSerializer, PageTreeSerializer
@@ -33,9 +35,10 @@ class PageViewSet(viewsets.ModelViewSet):
             return Response(
                 {"detail": _("Fant ikke siden")}, status=status.HTTP_404_NOT_FOUND
             )
-        except MultipleObjectsReturned:
+        except MultipleObjectsReturned as tree_destroyed_error:
+            capture_exception(tree_destroyed_error)
             return Response(
-                {"detail": _("Kan ikke lage siden fordi, treet er ødelagt")},
+                {"detail": _("Kan ikke hente siden fordi treet er ødelagt")},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
@@ -48,9 +51,10 @@ class PageViewSet(viewsets.ModelViewSet):
             return Response(
                 {"detail": _("Fant ikke siden")}, status=status.HTTP_404_NOT_FOUND
             )
-        except MultipleObjectsReturned:
+        except MultipleObjectsReturned as tree_destroyed_error:
+            capture_exception(tree_destroyed_error)
             return Response(
-                {"detail": _("Kan ikke lage siden fordi, treet er ødelagt")},
+                {"detail": _("Kan ikke hente siden fordi treet er ødelagt")},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
@@ -65,7 +69,7 @@ class PageViewSet(viewsets.ModelViewSet):
             return Response(
                 {
                     "detail": _(
-                        "En annen side med dette navnet eksisterer allerede i denne kategorien"
+                        "En annen side med dette navnet eksisterer allerede i denne Mappen"
                     )
                 },
                 status=status.HTTP_400_BAD_REQUEST,
@@ -74,9 +78,10 @@ class PageViewSet(viewsets.ModelViewSet):
             return Response(
                 {"detail": _("Fant ikke siden")}, status=status.HTTP_404_NOT_FOUND
             )
-        except MultipleObjectsReturned:
+        except MultipleObjectsReturned as tree_destroyed_error:
+            capture_exception(tree_destroyed_error)
             return Response(
-                {"detail": _("Kan ikke lage siden, fordi treet er ødelagt")},
+                {"detail": _("Kan ikke lage siden fordi treet er ødelagt")},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
@@ -95,9 +100,10 @@ class PageViewSet(viewsets.ModelViewSet):
             return Response(
                 {"detail": _("Fant ikke siden")}, status=status.HTTP_404_NOT_FOUND
             )
-        except MultipleObjectsReturned:
+        except MultipleObjectsReturned as tree_destroyed_error:
+            capture_exception(tree_destroyed_error)
             return Response(
-                {"detail": _("Kan ikke lage siden, fordi treet er ødelagt")},
+                {"detail": _("Kan ikke endre siden fordi treet er ødelagt")},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
@@ -126,9 +132,10 @@ class PageViewSet(viewsets.ModelViewSet):
             return Response(
                 {"detail": _("Fant ikke siden")}, status=status.HTTP_404_NOT_FOUND
             )
-        except MultipleObjectsReturned:
+        except MultipleObjectsReturned as tree_destroyed_error:
+            capture_exception(tree_destroyed_error)
             return Response(
-                {"detail": _("Kan ikke lage siden, fordi treet er ødelagt")},
+                {"detail": _("Kan ikke slette siden fordi treet er ødelagt")},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
