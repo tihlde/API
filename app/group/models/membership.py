@@ -53,9 +53,20 @@ class Membership(BaseModel):
     def __str__(self):
         return f"{self.user} - {self.group} - {self.membership_type}"
 
+    @staticmethod
+    def is_leader(user_id, group_slug):
+        return (
+            Membership.objects.filter(
+                membership_type=MembershipType.LEADER,
+                group__slug=group_slug,
+                user__user_id=user_id,
+            ).count()
+            == 1
+        )
+
     def clean(self):
         if self.membership_type is MembershipType.LEADER:
-            self.swap_board()
+            self.swap_leaders()
 
     def save(self, *args, **kwargs):
         self.full_clean()
@@ -66,7 +77,7 @@ class Membership(BaseModel):
         return super(Membership, self).delete(*args, **kwargs)
 
     @atomic
-    def swap_board(self):
+    def swap_leaders(self):
         previous_leader = (
             Membership.objects.select_for_update()
             .filter(group=self.group, membership_type=self.membership_type)

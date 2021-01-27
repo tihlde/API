@@ -1,3 +1,4 @@
+from app.group.factories.membership_factory import MembershipFactory
 from rest_framework import status
 
 import pytest
@@ -18,8 +19,8 @@ def _get_membership_url_detail(membership):
 
 def _get_membership_data(membership, leader=False):
     return {
-        "user": {"user_id": membership.user.user_id},
-        "group": {"name": membership.group.name},
+        "user":  membership.user.user_id,
+        "group": membership.group.slug,
         "membership_type": "LEADER" if (leader) else "MEMBER",
     }
 
@@ -129,3 +130,30 @@ def test_create_leader_membership(admin_user, membership_leader):
 
     assert membership_leader.membership_type == MembershipType.LEADER
     assert response.status_code == status.HTTP_200_OK
+
+@pytest.mark.django_db
+def test_update_membership_as_group_leader(user, group):
+    """Tests that a group leader can update a membership"""
+    MembershipFactory(user=user, group=group, membership_type=MembershipType.LEADER)
+    membership = MembershipFactory(group=group, membership_type=MembershipType.MEMBER)
+    client = get_api_client(user=user)
+    url = _get_membership_url_detail(membership)
+    response = client.put(url)
+
+    assert response.status_code == status.HTTP_200_OK
+
+@pytest.mark.django_db
+def test_create_member_membership_as_group_leader(user, group):
+    """Tests that a group leader can create a member membership"""
+
+    MembershipFactory(user=user, group=group, membership_type=MembershipType.LEADER)
+    membership = MembershipFactory(group=group, membership_type=MembershipType.MEMBER)
+    client = get_api_client(user=user)
+    url = _get_membership_url(membership)
+    data = _get_membership_data(membership)
+    response = client.post(url, data=data, format="json")
+    membership.refresh_from_db()
+
+    assert membership.membership_type == MembershipType.MEMBER
+    assert response.status_code == status.HTTP_200_OK
+
