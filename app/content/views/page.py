@@ -69,7 +69,7 @@ class PageViewSet(viewsets.ModelViewSet):
             return Response(
                 {
                     "detail": _(
-                        "En annen side med dette navnet eksisterer allerede i denne Mappen"
+                        "En annen side med dette navnet eksisterer allerede i denne mappen"
                     )
                 },
                 status=status.HTTP_400_BAD_REQUEST,
