@@ -22,6 +22,8 @@ class MembershipSerializer(serializers.ModelSerializer):
             "user",
             "group",
         )
+
+
 class MembershipLeaderSerializer(serializers.ModelSerializer):
     user = UserSerializer(read_only=True)
     group = GroupSerializer(read_only=True)

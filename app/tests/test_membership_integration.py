@@ -1,9 +1,9 @@
-from app.group.factories.membership_factory import MembershipFactory
 from rest_framework import status
 
 import pytest
 
 from app.common.enums import AdminGroup, MembershipType
+from app.group.factories.membership_factory import MembershipFactory
 from app.util.test_utils import get_api_client
 
 GROUP_URL = "/api/v1/group"
@@ -19,8 +19,8 @@ def _get_membership_url_detail(membership):
 
 def _get_membership_data(membership, leader=False):
     return {
-        "user":  membership.user.user_id,
-        "group": membership.group.slug,
+        "user": {"user_id": membership.user.user_id},
+        "group": {"group": membership.group.slug},
         "membership_type": "LEADER" if (leader) else "MEMBER",
     }
 
@@ -131,6 +131,7 @@ def test_create_leader_membership(admin_user, membership_leader):
     assert membership_leader.membership_type == MembershipType.LEADER
     assert response.status_code == status.HTTP_200_OK
 
+
 @pytest.mark.django_db
 def test_update_membership_as_group_leader(user, group):
     """Tests that a group leader can update a membership"""
@@ -141,6 +142,7 @@ def test_update_membership_as_group_leader(user, group):
     response = client.put(url)
 
     assert response.status_code == status.HTTP_200_OK
+
 
 @pytest.mark.django_db
 def test_create_member_membership_as_group_leader(user, group):
@@ -157,3 +159,22 @@ def test_create_member_membership_as_group_leader(user, group):
     assert membership.membership_type == MembershipType.MEMBER
     assert response.status_code == status.HTTP_200_OK
 
+
+@pytest.mark.django_db
+def test_update_member_membership_to_leader_as_group_leader(user, group, membership):
+    """Tests that a group leader can update a member membership to a leader which switches the leader of the group"""
+    leader = MembershipFactory(
+        user=user, group=group, membership_type=MembershipType.LEADER
+    )
+    leader.save()
+    membership.group = group
+    membership.save()
+    client = get_api_client(user=user)
+    url = _get_membership_url_detail(membership)
+    data = _get_membership_data(membership, leader=True)
+    response = client.put(url, data=data, format="json")
+    leader.refresh_from_db()
+    membership.refresh_from_db()
+    assert membership.membership_type == MembershipType.LEADER
+    assert leader.membership_type == MembershipType.MEMBER
+    assert response.status_code == status.HTTP_200_OK

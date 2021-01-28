@@ -35,7 +35,7 @@ class MembershipViewSet(viewsets.ModelViewSet):
         try:
             membership = self.get_object()
             serializer = UpdateMembershipSerializer(
-                membership, data=request.data
+                membership, data=request.data, partial=True
             )
             serializer.is_valid(raise_exception=True)
             return super().update(request, *args, **kwargs)
@@ -48,9 +48,10 @@ class MembershipViewSet(viewsets.ModelViewSet):
     def create(self, request, *args, **kwargs):
         try:
             membership = Membership.objects.get_or_create(
-                user__user_id=request.data["user"],
+                user__user_id=request.data["user"]["user_id"],
                 group__slug=kwargs["slug"],
             )
+
             serializer = MembershipSerializer(membership[0], data=request.data)
             serializer.is_valid(raise_exception=True)
             return Response(data=serializer.data, status=status.HTTP_200_OK)
